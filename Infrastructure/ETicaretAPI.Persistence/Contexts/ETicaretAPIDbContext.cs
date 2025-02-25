@@ -1,0 +1,52 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ETicaretAPI.Domain.Entities;
+using ETicaretAPI.Domain.Entities.Common;
+using Microsoft.EntityFrameworkCore;
+
+namespace ETicaretAPI.Persistence.Contexts
+{
+    public class ETicaretAPIDbContext : DbContext
+    {
+        public ETicaretAPIDbContext(DbContextOptions options) : base(options)
+        {
+        }
+
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+
+        // SaveChangeAsync Interceptor ?
+        // Interceptor, bir işlem gerçekleşmeden önce veya sonra araya girerek müdahale edebilmemizi sağlayan bir mekanizmadır.
+        // Tüm entityler için ortak olan alanların(CreatedDate ve UpdatedDate) veritabanına veri ekleme sürecinde merkezi bir yerden doldurmak için böyle bir yaklaşımda bulunduk.
+
+        // Biz ne zaman save fonksiyonunu çalıştırıp SaveChangesAsync'i tetiklersek burda ilk önce bu override tetiklenecek. 
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            //ChangeTracker : Entityler üzerinden yapılan değişiklerin ya da yeni eklenen verinin yakalanmasını sağlayan propertydir. Update operasyonlarında Track edilen verileri yakalayıp elde etmemizi sağlar.
+            // Entries: Sürece giren bütün girdileri getiriyor.
+
+            // C#’ta discard (_), bir değişkeni atamak istemediğimiz durumlarda kullanılan bir özelliktir.
+            // 📌 Bir değeri almak ama kullanmak istemediğimizde _ kullanılır. 
+
+            var datas = ChangeTracker
+                 .Entries<BaseEntity>();
+
+            foreach (var data in datas)
+            {
+                _ = data.State switch
+                {
+                    EntityState.Added => data.Entity.CreatedDate = DateTime.UtcNow,
+                    EntityState.Modified => data.Entity.UpdatedDate = DateTime.UtcNow,
+                    _ => DateTime.UtcNow
+                };
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+    }
+}
