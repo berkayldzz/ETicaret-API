@@ -12,7 +12,7 @@
     "ETicaretAPI.API": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "launchBrowser": false,  // true yaparak swagger için browser açabilirsin.
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:7072;http://localhost:5008",
       "environmentVariables": {
