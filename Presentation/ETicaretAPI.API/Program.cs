@@ -1,4 +1,4 @@
-
+using ETicaretAPI.Infrastructure;
 using ETicaretAPI.Application.Validators.Products;
 using ETicaretAPI.Infrastructure.Filters;
 using ETicaretAPI.Persistence;
@@ -7,6 +7,7 @@ using FluentValidation.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices();
+builder.Services.AddInfrastructureServices();
 
 // Bu sadece browser tabanlý client uygulamalarýnda geçerlidir.
 // Cors politika ayarýný yaparak client uygulamamýzdan gelen isteðin apimizi tüketmesine izin verdik.same origin policy'i hafiflettik.
