@@ -3,11 +3,17 @@ using ETicaretAPI.Application.Validators.Products;
 using ETicaretAPI.Infrastructure.Filters;
 using ETicaretAPI.Persistence;
 using FluentValidation.AspNetCore;
+using ETicaretAPI.Infrastructure.Enums;
+using ETicaretAPI.Infrastructure.Services.Storage.Local;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices();
 builder.Services.AddInfrastructureServices();
+
+builder.Services.AddStorage<LocalStorage>();
+
+//builder.Services.AddStorage(StorageType.Local);
 
 // Bu sadece browser tabanlý client uygulamalarýnda geçerlidir.
 // Cors politika ayarýný yaparak client uygulamamýzdan gelen isteðin apimizi tüketmesine izin verdik.same origin policy'i hafiflettik.

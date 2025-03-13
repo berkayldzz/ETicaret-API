@@ -19,6 +19,11 @@ namespace ETicaretAPI.Persistence.Contexts
         public DbSet<Order> Orders { get; set; }
         public DbSet<Customer> Customers { get; set; }
 
+        //Table Per Hierarchy Yaklaşımı
+        public DbSet<Domain.Entities.File> Files { get; set; }
+        public DbSet<ProductImageFile> ProductImageFiles { get; set; }
+        public DbSet<InvoiceFile> InvoiceFiles { get; set; }
+
         // SaveChangeAsync Interceptor ?
         // Interceptor, bir işlem gerçekleşmeden önce veya sonra araya girerek müdahale edebilmemizi sağlayan bir mekanizmadır.
         // Tüm entityler için ortak olan alanların(CreatedDate ve UpdatedDate) veritabanına veri ekleme sürecinde merkezi bir yerden doldurmak için böyle bir yaklaşımda bulunduk.
