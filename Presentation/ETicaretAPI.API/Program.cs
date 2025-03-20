@@ -5,11 +5,15 @@ using ETicaretAPI.Persistence;
 using FluentValidation.AspNetCore;
 using ETicaretAPI.Infrastructure.Enums;
 using ETicaretAPI.Infrastructure.Services.Storage.Local;
+using ETicaretAPI.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices();
 builder.Services.AddInfrastructureServices();
+builder.Services.AddApplicationServices();
+
+
 
 builder.Services.AddStorage<LocalStorage>();
 
