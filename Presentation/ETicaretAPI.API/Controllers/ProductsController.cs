@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace ETicaretAPI.API.Controllers
-{
+{//sd
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
