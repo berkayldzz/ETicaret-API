@@ -1,11 +1,10 @@
-using ETicaretAPI.Infrastructure;
+using ETicaretAPI.Application;
 using ETicaretAPI.Application.Validators.Products;
+using ETicaretAPI.Infrastructure;
 using ETicaretAPI.Infrastructure.Filters;
+using ETicaretAPI.Infrastructure.Services.Storage.Local;
 using ETicaretAPI.Persistence;
 using FluentValidation.AspNetCore;
-using ETicaretAPI.Infrastructure.Enums;
-using ETicaretAPI.Infrastructure.Services.Storage.Local;
-using ETicaretAPI.Application;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
