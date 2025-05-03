@@ -23,37 +23,43 @@ namespace ETicaretAPI.API.Controllers
     [Authorize(AuthenticationSchemes = "Admin")]
     public class ProductsController : ControllerBase
     {
-        readonly private IProductWriteRepository _productWriteRepository;
-        readonly private IProductReadRepository _productReadRepository;
-        private readonly IWebHostEnvironment _webHostEnvironment;
-        readonly IFileWriteRepository _fileWriteRepository;
-        readonly IFileReadRepository _fileReadRepository;
-        readonly IProductImageFileReadRepository _productImageFileReadRepository;
-        readonly IProductImageFileWriteRepository _productImageFileWriteRepository;
-        readonly IInvoiceFileReadRepository _invoiceFileReadRepository;
-        readonly IInvoiceFileWriteRepository _invoiceFileWriteRepository;
-        readonly IStorageService _storageService;
-        readonly IConfiguration configuration;
+        //readonly private IProductWriteRepository _productWriteRepository;
+        //readonly private IProductReadRepository _productReadRepository;
+        //private readonly IWebHostEnvironment _webHostEnvironment;
+        //readonly IFileWriteRepository _fileWriteRepository;
+        //readonly IFileReadRepository _fileReadRepository;
+        //readonly IProductImageFileReadRepository _productImageFileReadRepository;
+        //readonly IProductImageFileWriteRepository _productImageFileWriteRepository;
+        //readonly IInvoiceFileReadRepository _invoiceFileReadRepository;
+        //readonly IInvoiceFileWriteRepository _invoiceFileWriteRepository;
+        //readonly IStorageService _storageService;
+        //readonly IConfiguration configuration;
 
         readonly IMediator _mediator;
+        readonly ILogger<ProductsController> _logger;
 
 
-        public ProductsController(IProductWriteRepository productWriteRepository, IProductReadRepository productReadRepository, IWebHostEnvironment webHostEnvironment, IFileWriteRepository fileWriteRepository, IFileReadRepository fileReadRepository, IProductImageFileReadRepository productImageFileReadRepository, IProductImageFileWriteRepository productImageFileWriteRepository, IInvoiceFileReadRepository invoiceFileReadRepository, IInvoiceFileWriteRepository invoiceFileWriteRepository, IStorageService storageService, IConfiguration configuration, IMediator mediator)
+        public ProductsController(IMediator mediator, ILogger<ProductsController> logger)
         {
-            _productWriteRepository = productWriteRepository;
-            _productReadRepository = productReadRepository;
-            this._webHostEnvironment = webHostEnvironment;
-            _webHostEnvironment = webHostEnvironment;
-            _fileWriteRepository = fileWriteRepository;
-            _fileReadRepository = fileReadRepository;
-            _productImageFileReadRepository = productImageFileReadRepository;
-            _productImageFileWriteRepository = productImageFileWriteRepository;
-            _invoiceFileReadRepository = invoiceFileReadRepository;
-            _invoiceFileWriteRepository = invoiceFileWriteRepository;
-            _storageService = storageService;
-            this.configuration = configuration;
             _mediator = mediator;
+            _logger = logger;
         }
+        //public ProductsController(IProductWriteRepository productWriteRepository, IProductReadRepository productReadRepository, IWebHostEnvironment webHostEnvironment, IFileWriteRepository fileWriteRepository, IFileReadRepository fileReadRepository, IProductImageFileReadRepository productImageFileReadRepository, IProductImageFileWriteRepository productImageFileWriteRepository, IInvoiceFileReadRepository invoiceFileReadRepository, IInvoiceFileWriteRepository invoiceFileWriteRepository, IStorageService storageService, IConfiguration configuration, IMediator mediator)
+        //{
+        //    _productWriteRepository = productWriteRepository;
+        //    _productReadRepository = productReadRepository;
+        //    this._webHostEnvironment = webHostEnvironment;
+        //    _webHostEnvironment = webHostEnvironment;
+        //    _fileWriteRepository = fileWriteRepository;
+        //    _fileReadRepository = fileReadRepository;
+        //    _productImageFileReadRepository = productImageFileReadRepository;
+        //    _productImageFileWriteRepository = productImageFileWriteRepository;
+        //    _invoiceFileReadRepository = invoiceFileReadRepository;
+        //    _invoiceFileWriteRepository = invoiceFileWriteRepository;
+        //    _storageService = storageService;
+        //    this.configuration = configuration;
+        //    _mediator = mediator;
+        //}
 
         // İlgili request parametresini veriyoruz.
         // Bu parametreye karşılık devreye sokulacak handler sınıfını mediator biliyor.
@@ -80,6 +86,8 @@ namespace ETicaretAPI.API.Controllers
             //    products
             //});
             #endregion
+
+            _logger.LogInformation("asmdlasmdlamsd");
 
             // geriye GetAllProductQueryResponse döndüreceğini biliyor.ve biz de o türde karşılıyoruz ve responsu döndürüyoruz.
             GetAllProductQueryResponse response = await _mediator.Send(getAllProductQueryRequest);

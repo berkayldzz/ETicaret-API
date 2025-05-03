@@ -1,3 +1,4 @@
+ï»¿using ETicaretAPI.API.Configurations.ColumnWriters;
 using ETicaretAPI.Application;
 using ETicaretAPI.Application.Validators.Products;
 using ETicaretAPI.Infrastructure;
@@ -6,7 +7,14 @@ using ETicaretAPI.Infrastructure.Services.Storage.Local;
 using ETicaretAPI.Persistence;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
+using NpgsqlTypes;
+using Serilog;
+using Serilog.Context;
+using Serilog.Core;
+using Serilog.Sinks.PostgreSQL;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,15 +29,46 @@ builder.Services.AddStorage<LocalStorage>();
 
 //builder.Services.AddStorage(StorageType.Local);
 
-// Bu sadece browser tabanlý client uygulamalarýnda geçerlidir.
-// Cors politika ayarýný yaparak client uygulamamýzdan gelen isteðin apimizi tüketmesine izin verdik.same origin policy'i hafiflettik.
-//policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin() // bu her yerden gelmesini saðlar
+// Bu sadece browser tabanlÄ± client uygulamalarÄ±nda geÃ§erlidir.
+// Cors politika ayarÄ±nÄ± yaparak client uygulamamÄ±zdan gelen isteÄŸin apimizi tÃ¼ketmesine izin verdik.same origin policy'i hafiflettik.
+//policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin() // bu her yerden gelmesini saÄŸlar
 
-// sadece kendi client uygulamamýzdan gelenleri kabul ettik ki  baþka yerlerden gelmesin.
+// sadece kendi client uygulamamÄ±zdan gelenleri kabul ettik ki  baÅŸka yerlerden gelmesin.
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins("http://localhost:4200", "https://localhost:4200").AllowAnyHeader().AllowAnyMethod()
 ));
+
+Logger log = new LoggerConfiguration()
+     .WriteTo.Console()
+     .WriteTo.File("logs/log.txt")
+     .WriteTo.PostgreSQL(builder.Configuration.GetConnectionString("PostgreSQL"), "logs",
+         needAutoCreateTable: true,
+         columnOptions: new Dictionary<string, ColumnWriterBase>
+         {
+             {"message", new RenderedMessageColumnWriter(NpgsqlDbType.Text)},
+             {"message_template", new MessageTemplateColumnWriter(NpgsqlDbType.Text)},
+             {"level", new LevelColumnWriter(true , NpgsqlDbType.Varchar)},
+             {"time_stamp", new TimestampColumnWriter(NpgsqlDbType.Timestamp)},
+             {"exception", new ExceptionColumnWriter(NpgsqlDbType.Text)},
+             {"log_event", new LogEventSerializedColumnWriter(NpgsqlDbType.Json)},
+             {"user_name", new UsernameColumnWriter()}
+         })
+     .WriteTo.Seq(builder.Configuration["Seq:ServerURL"])
+     .Enrich.FromLogContext()
+     .MinimumLevel.Information()
+     .CreateLogger();
+
+builder.Host.UseSerilog(log);
+
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = HttpLoggingFields.All;
+    logging.RequestHeaders.Add("sec-ch-ua");
+    logging.MediaTypeOptions.AddText("application/javascript");
+    logging.RequestBodyLogLimit = 4096;
+    logging.ResponseBodyLogLimit = 4096;
+});
 
 builder.Services.AddControllers(options => options.Filters.Add<ValidationFilter>())
     .AddFluentValidation(configuration => configuration.RegisterValidatorsFromAssemblyContaining<CreateProductValidator>()).ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
@@ -43,14 +82,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
      {
          options.TokenValidationParameters = new()
          {
-             ValidateAudience = true, //Olusturulacak token degerini kimlerin/hangi originlerin/sitelerin kullanacaðýný belirledigimiz deðerdir. -> www.bilmemne.com
-             ValidateIssuer = true, //Olusturulacak token degerini kimin daðýttýðýný ifade edeceðimiz alandýr. -> www.myapi.com
-             ValidateLifetime = true, //Olusturulan token degerinin süresini kontrol edecek olan dogrulamadýr.
-             ValidateIssuerSigningKey = true, //Üretilecek token degerinin uygulamamýza ait bir deger oldugunu ifade eden security key  verisinin dogrulanmasýdýr
+             ValidateAudience = true, //Olusturulacak token degerini kimlerin/hangi originlerin/sitelerin kullanacaÄŸÄ±nÄ± belirledigimiz deÄŸerdir. -> www.bilmemne.com
+             ValidateIssuer = true, //Olusturulacak token degerini kimin daÄŸÄ±ttÄ±ÄŸÄ±nÄ± ifade edeceÄŸimiz alandÄ±r. -> www.myapi.com
+             ValidateLifetime = true, //Olusturulan token degerinin sÃ¼resini kontrol edecek olan dogrulamadÄ±r.
+             ValidateIssuerSigningKey = true, //Ãœretilecek token degerinin uygulamamÄ±za ait bir deger oldugunu ifade eden security key  verisinin dogrulanmasÄ±dÄ±r
 
              ValidAudience = builder.Configuration["Token:Audience"],
              ValidIssuer = builder.Configuration["Token:Issuer"],
-             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Token:SecurityKey"]))
+             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Token:SecurityKey"])),
+
+              NameClaimType = ClaimTypes.Name //JWT Ã¼zerinde Name claimne karÃ¾Ã½lÃ½k gelen deÃ°eri User.Identity.Name propertysinden elde edebiliriz.
          };
      });
 
@@ -67,11 +108,23 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+
+app.UseSerilogRequestLogging();
+
+app.UseHttpLogging();
+
 app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.Use(async (context, next) =>
+ {
+     var username = context.User?.Identity?.IsAuthenticated != null || true ? context.User.Identity.Name : null;
+     LogContext.PushProperty("user_name", username);
+     await next();
+ });
 
 app.MapControllers();
 
