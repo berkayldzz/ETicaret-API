@@ -17,12 +17,18 @@ using Serilog.Core;
 using Serilog.Sinks.PostgreSQL;
 using System.Security.Claims;
 using System.Text;
+using ETicaretAPI.SignalR;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddPersistenceServices();
 builder.Services.AddInfrastructureServices();
 builder.Services.AddApplicationServices();
+builder.Services.AddSignalRServices();
+
+
 
 
 
@@ -37,7 +43,7 @@ builder.Services.AddStorage<LocalStorage>();
 // sadece kendi client uygulamamızdan gelenleri kabul ettik ki  başka yerlerden gelmesin.
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
-    policy.WithOrigins("http://localhost:4200", "https://localhost:4200").AllowAnyHeader().AllowAnyMethod()
+    policy.WithOrigins("http://localhost:4200", "https://localhost:4200").AllowAnyHeader().AllowAnyMethod().AllowCredentials()
 ));
 
 Logger log = new LoggerConfiguration()
@@ -130,5 +136,6 @@ app.Use(async (context, next) =>
  });
 
 app.MapControllers();
+app.MapHubs();
 
 app.Run();
