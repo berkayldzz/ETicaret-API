@@ -2,6 +2,7 @@
 using ETicaretAPI.Application.Features.Commands.Product.CreateProduct;
 using ETicaretAPI.Application.Features.Commands.Product.RemoveProduct;
 using ETicaretAPI.Application.Features.Commands.Product.UpdateProduct;
+using ETicaretAPI.Application.Features.Commands.ProductImageFile.ChangeShowcaseImage;
 using ETicaretAPI.Application.Features.Commands.ProductImageFile.RemoveProductImage;
 using ETicaretAPI.Application.Features.Commands.ProductImageFile.UploadProductImage;
 using ETicaretAPI.Application.Features.Queries.Product.GetAllProduct;
@@ -20,47 +21,18 @@ namespace ETicaretAPI.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = "Admin")]
     public class ProductsController : ControllerBase
     {
-        //readonly private IProductWriteRepository _productWriteRepository;
-        //readonly private IProductReadRepository _productReadRepository;
-        //private readonly IWebHostEnvironment _webHostEnvironment;
-        //readonly IFileWriteRepository _fileWriteRepository;
-        //readonly IFileReadRepository _fileReadRepository;
-        //readonly IProductImageFileReadRepository _productImageFileReadRepository;
-        //readonly IProductImageFileWriteRepository _productImageFileWriteRepository;
-        //readonly IInvoiceFileReadRepository _invoiceFileReadRepository;
-        //readonly IInvoiceFileWriteRepository _invoiceFileWriteRepository;
-        //readonly IStorageService _storageService;
-        //readonly IConfiguration configuration;
-
         readonly IMediator _mediator;
         readonly ILogger<ProductsController> _logger;
-
 
         public ProductsController(IMediator mediator, ILogger<ProductsController> logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
-        //public ProductsController(IProductWriteRepository productWriteRepository, IProductReadRepository productReadRepository, IWebHostEnvironment webHostEnvironment, IFileWriteRepository fileWriteRepository, IFileReadRepository fileReadRepository, IProductImageFileReadRepository productImageFileReadRepository, IProductImageFileWriteRepository productImageFileWriteRepository, IInvoiceFileReadRepository invoiceFileReadRepository, IInvoiceFileWriteRepository invoiceFileWriteRepository, IStorageService storageService, IConfiguration configuration, IMediator mediator)
-        //{
-        //    _productWriteRepository = productWriteRepository;
-        //    _productReadRepository = productReadRepository;
-        //    this._webHostEnvironment = webHostEnvironment;
-        //    _webHostEnvironment = webHostEnvironment;
-        //    _fileWriteRepository = fileWriteRepository;
-        //    _fileReadRepository = fileReadRepository;
-        //    _productImageFileReadRepository = productImageFileReadRepository;
-        //    _productImageFileWriteRepository = productImageFileWriteRepository;
-        //    _invoiceFileReadRepository = invoiceFileReadRepository;
-        //    _invoiceFileWriteRepository = invoiceFileWriteRepository;
-        //    _storageService = storageService;
-        //    this.configuration = configuration;
-        //    _mediator = mediator;
-        //}
-
+     
+        
         // İlgili request parametresini veriyoruz.
         // Bu parametreye karşılık devreye sokulacak handler sınıfını mediator biliyor.
         // Mediatr vermiş olduğum request nesnesine karşılık hangi handler sınıfını devreye sokacağını ve bu handler sınıfında yapılan işlem neticesinde hangi nesneyi response nesnesi geri döndüreceğini biliyor.
@@ -87,15 +59,10 @@ namespace ETicaretAPI.API.Controllers
             //});
             #endregion
 
-            _logger.LogInformation("asmdlasmdlamsd");
-
             // geriye GetAllProductQueryResponse döndüreceğini biliyor.ve biz de o türde karşılıyoruz ve responsu döndürüyoruz.
             GetAllProductQueryResponse response = await _mediator.Send(getAllProductQueryRequest);
             return Ok(response);
-
-
         }
-
 
         [HttpGet("{Id}")]
         public async Task<IActionResult> Get([FromRoute]GetByIdProductQueryRequest getByIdProductQueryRequest)
@@ -104,6 +71,8 @@ namespace ETicaretAPI.API.Controllers
             return Ok(response);
         }
         [HttpPost]
+        [Authorize(AuthenticationSchemes = "Admin")]
+
         public async Task<IActionResult> Post(/*VM_Create_Product model*/ CreateProductCommandRequest createProductCommandRequest)
         {
             #region
@@ -123,6 +92,8 @@ namespace ETicaretAPI.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "Admin")]
+
         public async Task<IActionResult> Put(/*VM_Update_Product model*/ [FromBody] UpdateProductCommandRequest updateProductCommandRequest)
         {
             #region eski
@@ -141,6 +112,8 @@ namespace ETicaretAPI.API.Controllers
 
         }
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+
         public async Task<IActionResult> Delete([FromRoute] RemoveProductCommandRequest removeProductCommandRequest)
         {
             RemoveProductCommandResponse response = await _mediator.Send(removeProductCommandRequest);
@@ -150,6 +123,8 @@ namespace ETicaretAPI.API.Controllers
 
 
         [HttpPost("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+
         public async Task<IActionResult> Upload([FromQuery] UploadProductImageCommandRequest uploadProductImageCommandRequest)
         {
             #region
@@ -212,6 +187,8 @@ namespace ETicaretAPI.API.Controllers
         }
 
         [HttpGet("[action]/{id}")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+
         public async Task<IActionResult> GetProductImages([FromRoute] GetProductImagesQueryRequest getProductImagesQueryRequest)
         {
             #region
@@ -229,18 +206,30 @@ namespace ETicaretAPI.API.Controllers
             return Ok(response);
         }
         [HttpDelete("[action]/{id}")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+
         public async Task<IActionResult> DeleteProductImage(/*string id, string imageId*/ [FromRoute] RemoveProductImageCommandRequest removeProductImageCommandRequest, [FromQuery] string imageId)
         {
+            #region eski
             //Product? product = await _productReadRepository.Table.Include(p => p.ProductImageFiles)
             //      .FirstOrDefaultAsync(p => p.Id == Guid.Parse(id));
 
             //ProductImageFile productImageFile = product.ProductImageFiles.FirstOrDefault(p => p.Id == Guid.Parse(imageId));
             //product.ProductImageFiles.Remove(productImageFile);
             //await _productWriteRepository.SaveAsync();
+            #endregion
 
             removeProductImageCommandRequest.ImageId = imageId;
             RemoveProductImageCommandResponse response = await _mediator.Send(removeProductImageCommandRequest);
             return Ok();
+        }
+
+        [HttpGet("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+        public async Task<IActionResult> ChangeShowcaseImage([FromQuery] ChangeShowcaseImageCommandRequest changeShowcaseImageCommandRequest)
+        {
+            ChangeShowcaseImageCommandResponse response = await _mediator.Send(changeShowcaseImageCommandRequest);
+            return Ok(response);
         }
     }
 }
