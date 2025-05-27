@@ -12,6 +12,6 @@ namespace ETicaretAPI.Domain.Entities
         // 1 müşterinin birden fazla orderı olabilir.
         public string Name { get; set; }
 
-        public ICollection<Order> Orders { get; set; }
+        //public ICollection<Order> Orders { get; set; }
     }
 }
